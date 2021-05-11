@@ -1,7 +1,7 @@
 include("./simulation.jl")
 using CSV
 
-date = "2021_04_30"
+date = "2021_05_03"
 
 results = HscSim.main(10000)
 show(results)
