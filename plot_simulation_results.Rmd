@@ -205,3 +205,33 @@ results %>%
     MASS::glm.nb(passengers_before_driver_censored ~ driver_birth + I(fitness * driver_age), data = .) %>%
     broom::tidy(.)
 ```
+
+### Competing clone simulation demonstrates rs2887399 advantage for DNMT3A
+
+We simulate two competing clones, where in a given simulation, exactly two drivers are acquired.
+These two simulated drivers represent DNMT3A and TET2. Here, the fitness of the DNMT3A clone
+$s_{i, dnmt} ~ Beta(10, 25)$, which means that $E(s_{i, dnmt}) = 0.286$. 
+We will run this simulating in two settings to simulate different rs2883799 genotypes - 
+
+ 1. rs2883799 = T/T, where TET2 will have 20% less fitness on average than DNMT3A  
+ 2. rs2883799 = G/G, where TET2 will have 20% more fitness on average than DNMT3A  
+
+We run the simulation such that the two clone are competing - i.e., the two drivers
+are assigned to separate HSC clones. We then track the effects of the different
+fitness settings across the simulated HSC lifetime of 90 years. 
+
+```{r competing_clone, echo = FALSE, message = FALSE, warning = FALSE}
+competing_clone_date = "2021_10_27"
+tet2_strong = vroom::vroom(glue("HSC_sim_results_two_drivers_tet2_strong_{competing_clone_date}.csv"))
+tet2_weak   = vroom::vroom(glue("HSC_sim_results_two_drivers_tet2_weak_{competing_clone_date}.csv"))
+
+clone_sim = bind_rows(
+    tet2_strong %>% mutate(rs2887399 = "G/G"),
+    tet2_weak %>% mutate(rs2887399 = "T/T")
+) 
+
+ggplot(data = clone_sim, aes(y = rs2887399, x = log10(passengers_before_driver_censored + 1), fill = driver_label)) +
+    ggridges::geom_density_ridges(alpha = 0.7) +
+    labs(x = "log10(1 + Founding censored passengers)", fill = "Driver") + 
+    cowplot::theme_cowplot(font_size = 12)
+```
